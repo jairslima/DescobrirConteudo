@@ -8,5 +8,6 @@ dist/
 .eggs/
 .env
 .venv/
+.claude/
 env/
 venv/

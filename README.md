@@ -1,52 +1,91 @@
-# Descobrir a Extenção do Arquivo pelo Conteúdo By Jair Lima
+# Descobrir a Extensao do Arquivo pelo Conteudo By Jair Lima
 
-Ferramenta para identificar e restaurar extensões de arquivos perdidas, analisando o conteúdo binário (magic bytes) de cada arquivo para determinar seu tipo real.
+Ferramenta para identificar e restaurar extensoes de arquivos perdidas, analisando o conteudo binario (magic bytes) de cada arquivo para determinar seu tipo real.
 
 ## O problema
 
-Arquivos podem perder suas extensões por diversos motivos: transferências interrompidas, renomeações acidentais, downloads corrompidos, backups mal formatados. Sem a extensão, o sistema operacional não sabe qual programa usar para abrir o arquivo.
+Arquivos podem perder suas extensoes por diversos motivos: transferencias interrompidas, renomeacoes acidentais, downloads corrompidos, backups mal formatados. Sem a extensao, o sistema operacional nao sabe qual programa usar para abrir o arquivo.
 
-## A solução
+## A solucao
 
-Este programa varre uma pasta, encontra arquivos sem extensão (ou com extensão falsa/numérica), analisa os primeiros bytes do conteúdo para identificar o tipo real e renomeia adicionando a extensão correta.
+Este programa varre uma pasta ou analisa um arquivo especifico, encontra arquivos sem extensao (ou com extensao falsa/numerica), analisa os primeiros bytes do conteudo para identificar o tipo real e renomeia adicionando a extensao correta.
 
-## Instalação
+## Instalacao
 
-### Opção 1: Executável Windows (sem Python)
-Baixe o `DescobrirConteudo.exe` da seção [Releases](../../releases) e execute diretamente.
+### Opcao 1: Executavel Windows
+Baixe o `DescobrirConteudo.exe` da secao [Releases](../../releases) e execute diretamente.
 
-### Opção 2: Rodar com Python
+### Opcao 2: Rodar com Python
 ```bash
-pip install python-magic-bin
+pip install -r requirements.txt
 python descobrir_conteudo.py
 ```
 
 ## Uso
 
-### Interface gráfica
+### Escopo de execucao
+
+A execucao **nao e global por padrao**.
+
+- Com Python, voce roda a partir da pasta do projeto: `python descobrir_conteudo.py`
+- Com o executavel, voce roda pelo caminho completo ou a partir da pasta onde esta o `DescobrirConteudo.exe`
+- So passa a ser "global" se voce adicionar a pasta do executavel ao `PATH` do Windows, ou criar um atalho/comando proprio
+
+### Parametros aceitos
+
+O aplicativo aceita como alvo:
+
+- **um arquivo sem extensao**
+- **uma pasta**
+
+Se o alvo for um arquivo, ele analisa apenas aquele arquivo.
+Se o alvo for uma pasta, ele varre os arquivos da pasta e, com `-r`, inclui subpastas.
+
+### Interface grafica
 ```bash
 python descobrir_conteudo.py
 ```
-1. Selecione a pasta com os arquivos
-2. Marque "Subpastas" se quiser varrer recursivamente
+1. Selecione um arquivo ou pasta
+2. Marque "Subpastas" se quiser varrer recursivamente uma pasta
 3. Clique em "Varrer"
-4. Revise os resultados na tabela
+4. Revise os resultados, incluindo a observacao do motivo
 5. Selecione/desmarque os arquivos desejados
 6. Clique em "Renomear Selecionados"
 
 ### Linha de comando
 ```bash
+# Analisar um arquivo especifico
+python descobrir_conteudo.py "D:\Backup\Dropbox\_AnosAnteriores\CASA EFETIVADA"
+
 # Varrer uma pasta
 python descobrir_conteudo.py "C:\minha\pasta"
 
 # Varrer incluindo subpastas
 python descobrir_conteudo.py "C:\minha\pasta" -r
 
-# Renomear automaticamente sem confirmação
+# Renomear automaticamente sem confirmacao
 python descobrir_conteudo.py "C:\minha\pasta" -r -y
 
 # Modo CLI na pasta atual
 python descobrir_conteudo.py --cli
+```
+
+### Executavel Windows
+```powershell
+# Arquivo especifico
+.\dist\DescobrirConteudo.exe "D:\Backup\Dropbox\_AnosAnteriores\CASA EFETIVADA"
+
+# Pasta
+.\dist\DescobrirConteudo.exe "C:\minha\pasta"
+
+# Pasta com subpastas e renomeacao automatica
+.\dist\DescobrirConteudo.exe "C:\minha\pasta" -r -y
+```
+
+Se quiser uso global no terminal, adicione a pasta que contem `DescobrirConteudo.exe` ao `PATH` e depois rode, por exemplo:
+
+```powershell
+DescobrirConteudo.exe "D:\Backup\Dropbox\_AnosAnteriores\CASA EFETIVADA" -y
 ```
 
 ## Tipos suportados (60+)
@@ -55,30 +94,31 @@ python descobrir_conteudo.py --cli
 |--------------|-------------------------------------------------------|
 | Documentos   | PDF, DOCX, DOC, XLSX, XLS, PPTX, PPT, RTF, ODT, ODS, EPUB |
 | Imagens      | JPG, PNG, GIF, BMP, WEBP, TIFF, SVG, ICO, PSD        |
-| Áudio        | MP3, WAV, OGG, FLAC, AAC, M4A                         |
-| Vídeo        | MP4, AVI, MKV, MOV, WEBM, FLV, MPEG                   |
+| Audio        | MP3, WAV, OGG, FLAC, AAC, M4A                         |
+| Video        | MP4, AVI, MKV, MOV, WEBM, FLV, MPEG                   |
 | Compactados  | ZIP, RAR, 7Z, GZ, TAR, BZ2                            |
-| Executáveis  | EXE, DLL, MSI, JAR                                    |
-| Texto/Código | TXT, HTML, CSS, CSV, XML, JSON, JS, PY, C, CPP, JAVA, SH |
+| Executaveis  | EXE, DLL, MSI, JAR                                    |
+| Texto/Codigo | TXT, HTML, CSS, CSV, XML, JSON, JS, PY, C, CPP, JAVA, SH |
 | Outros       | SQLite, ISO, TTF, OTF, WOFF, WOFF2                    |
 
 ## Como funciona
 
-1. **Varredura**: lista todos os arquivos da pasta
-2. **Filtro de extensão inteligente**: identifica arquivos sem extensão real (ignora extensões falsas como `.09`, `. 02`)
-3. **Detecção por conteúdo**: lê os primeiros 8KB de cada arquivo e usa libmagic para identificar o MIME type
-4. **Mapeamento**: converte o MIME type para a extensão de arquivo correspondente
-5. **Renomeação segura**: adiciona a extensão ao nome original (com sufixo numérico se já existir arquivo com o mesmo nome)
+1. **Varredura**: lista os arquivos do caminho informado
+2. **Filtro de extensao inteligente**: identifica arquivos sem extensao real e aceita analise de arquivo individual
+3. **Deteccao por conteudo**: le os primeiros 8KB de cada arquivo e usa libmagic para identificar o MIME type
+4. **Mapeamento**: converte o MIME type para a extensao de arquivo correspondente
+5. **Diagnostico**: informa por que um arquivo nao pode ser renomeado quando o MIME e desconhecido ou nao possui mapeamento
+6. **Renomeacao segura**: adiciona a extensao ao nome original, com sufixo numerico se ja existir arquivo com o mesmo nome
 
-## Gerar executável
+## Gerar executavel
 
 ```bash
 pip install pyinstaller
-pyinstaller --onefile --windowed --name "DescobrirConteudo" --clean descobrir_conteudo.py
+pyinstaller --onefile --name "DescobrirConteudo" --clean descobrir_conteudo.py
 ```
 
-O executável será gerado em `dist/DescobrirConteudo.exe`.
+O executavel sera gerado em `dist/DescobrirConteudo.exe`.
 
-## Licença
+## Licenca
 
 MIT
